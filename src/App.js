@@ -1,23 +1,46 @@
-import logo from './logo.svg';
 import './App.css';
+import React, { useEffect, useState, useRef } from "react"
+import Gallery from "./components/Gallery"
+import SearchBar from "./components/SearchBar"
+import { DataContext } from './context/DataContext';
+import { SearchContext } from "./context/SearchContext"
 
 function App() {
+  let [message, setMessage] = useState('Search for Music!')
+  let [data, setData] = useState([])
+  let termRef = useRef("")
+
+  let fetchURL = "https://itunes.apple.com/search?term="
+
+  const handleSearch = (e, term) => {
+    e.preventDefault()
+    const fetchData = async () => {
+      document.title = `${term} Music`
+      const response = await fetch(fetchURL + term.replace(" ", "%"))
+      const resData = await response.json()
+      console.log("this is resData: " + resData)
+      if(resData.results.length > 0){
+        setData(resData.results)
+      } else {
+        setMessage("Not Found")
+      }
+    }
+    fetchData()
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Welcome to the Music Library!</h1>
+      <SearchContext.Provider value={{
+        termRef: termRef,
+        handleSearchRef: handleSearch
+      }}>
+        <SearchBar handleSearch={handleSearch} />
+      </SearchContext.Provider>
+      {message}
+      <DataContext.Provider value={data}>
+        <Gallery data={data}/>
+      </DataContext.Provider>
     </div>
   );
 }
