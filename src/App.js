@@ -11,25 +11,31 @@ import { render } from "react-dom"
 
 function App() {
   let [message, setMessage] = useState('Search for Music!')
+  let [term, setTerm] = useState("")
   let [data, setData] = useState([])
   let termRef = useRef("")
 
-  let fetchURL = "https://itunes.apple.com/search?term="
+
+  useEffect(() => {
+    let fetchURL = "https://itunes.apple.com/search?term="
+    if (term){
+      document.title = `${term} Music`
+      const fetchData = async () => {
+        const response = await fetch(fetchURL + term)
+        const resData = await response.json()
+        if(resData.results.length > 0){
+          setData(resData.results)
+        } else {
+          setMessage("Not Found")
+        }
+      }
+      fetchData()
+    }
+  }, [term])
 
   const handleSearch = (e, term) => {
     e.preventDefault()
-    const fetchData = async () => {
-      document.title = `${term} Music`
-      const response = await fetch(fetchURL + term.replace(" ", "%"))
-      const resData = await response.json()
-      console.log("this is resData: " + resData)
-      if(resData.results.length > 0){
-        setData(resData.results)
-      } else {
-        setMessage("Not Found")
-      }
-    }
-    fetchData()
+    setTerm(term)
   }
 
   return (
