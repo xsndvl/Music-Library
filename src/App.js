@@ -25,8 +25,6 @@ function App() {
         const resData = await response.json()
         if(resData.results.length > 0){
           setData(resData.results)
-          console.log('reDa')
-          console.log(resData)
         } else {
           setMessage("Not Found")
         }
