@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState, useRef, Suspense } from "react"
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
 import Gallery from "./components/Gallery"
 import SearchBar from "./components/SearchBar"
@@ -7,18 +7,20 @@ import { DataContext } from './context/DataContext';
 import { SearchContext } from "./context/SearchContext"
 import AlbumView from './views/AlbumView';
 import ArtistView from './views/ArtistView';
-import { render } from "react-dom"
+import { createResource as fetchData } from "./helper"
+import { render } from '@testing-library/react';
 
 function App() {
   let [message, setMessage] = useState('Search for Music!')
   let [term, setTerm] = useState("")
-  let [data, setData] = useState([])
+  let [data, setData] = useState(null)
   let termRef = useRef("")
 
 
   useEffect(() => {
     let fetchURL = "https://itunes.apple.com/search?term="
     if (term){
+      setData(fetchData(term))
       document.title = `${term} Music`
       const fetchData = async () => {
         const response = await fetch(fetchURL + term)
@@ -38,9 +40,24 @@ function App() {
     setTerm(term)
   }
 
+  const renderGallery = () => {
+    if(data){
+      return(
+        //suspense and context here
+        
+        <Suspense fallback={<h1>Loading...</h1>}>
+        <DataContext.Provider value={data}>
+          <Gallery data={data}/>
+        </DataContext.Provider>
+        </Suspense>
+      )
+    }
+  }
+
   return (
     <div className="App">
       {message}
+      
       <Router>
         <Routes>
           <Route path="/" element={
@@ -51,10 +68,10 @@ function App() {
                 handleSearchRef: handleSearch
               }}>
                 <SearchBar handleSearch={handleSearch} />
+                {renderGallery}
               </SearchContext.Provider>
-              <DataContext.Provider value={data}>
-                <Gallery data={data}/>
-              </DataContext.Provider>
+
+
             </div>
           }/>
           <Route path="/album/:id" element={<AlbumView />}/>
